@@ -122,3 +122,13 @@ insert into avg_stats (vm_name, time, avg_cpu, avg_memory) values
 	('T03-VM02-Lin-Ling', '2014-04-19 00:06:01', 20.15, 25),
 	('T03-VM02-Lin-Ling', '2014-04-19 00:07:01', 21.15, 26),
 	('T03-VM02-Lin-Ling', '2014-04-19 00:08:01', 22.15, 27);
+
+DROP TABLE IF EXISTS cpu;
+CREATE TABLE cpu (
+  id int NOT NULL AUTO_INCREMENT,
+  ip varchar(20) NOT NULL,
+  time varchar(50) NOT NULL,
+  us decimal(5,2) NOT NULL, -- % of user CPU 
+  sy decimal(5,2) NOT NULL, -- % of system CPU 
+  PRIMARY KEY (id)
+);

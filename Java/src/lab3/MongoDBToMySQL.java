@@ -34,6 +34,7 @@ public static void main (String[] args) throws Exception{
 		DB db = mongoClient.getDB( "mydb" );
 		
 		DBCollection coll = db.getCollection("statics");
+		
 	    //condition list：  
 	    BasicDBList condList = new BasicDBList();     
 	    //time within range 
