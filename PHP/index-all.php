@@ -1,5 +1,8 @@
 <?php include ("cpu.php");?>
 <?php include ("memory.php");?>
+<?php include ("thread.php");?>
+<?php include ("io.php");?>
+
 <head>
 
     <meta charset="utf-8">
@@ -61,6 +64,38 @@
 			<tr>
 		    </table>
 			
+            <h1>Thread Usage of Virtual Machines </h1>
+			<table>
+			<tr><td height=200px width=500px >	
+			<?php echo $vmip1 ?>
+            <div id="Threadchart1"></div>
+		    </td><td height=200px width=500px>		
+			<?php echo $vmip2 ?>
+			<div id="Threadchart2"></div>
+		    </td>
+			<tr>
+		    </table>
+			
+            <h1>I/O Usage of Virtual Machines </h1>
+			<table>
+			<tr><td height=200px width=500px >	
+			<?php echo $vmip1 ?>
+            <div id="IOchart1"></div>
+		    </td><td height=200px width=500px>		
+			<?php echo $vmip2 ?>
+			<div id="IOchart2"></div>
+		    </td>
+			<tr>
+			<tr><td height=200px width=500px >	
+			<?php echo $vmip1 ?>
+            <div id="IORWchart1"></div>
+		    </td><td height=200px width=500px>		
+			<?php echo $vmip2 ?>
+			<div id="IORWchart2"></div>
+		    </td>
+			<tr>
+		    </table>
+			
         </div>
 
     </div>
@@ -76,48 +111,133 @@
                 <?php echo $graphCPUData2 ?>
             ]);
 			
+            var cpuoptions = {
+                title: 'CPU Usage of Virtual Machine' ,
+                fontSize: 11,
+				curveType:'function',
+                series: {
+                    0:{color: 'red', visibleInLegend: true, pointSize: 3, lineWidth: 1}          
+                },
+                hAxis: {title: 'Time', titleTextStyle:{color: '#03619D'}},
+                vAxis: {title: 'CPU Usage', titleTextStyle:{color: '#03619D'}}
+            };
+			
             var memorydata1 = google.visualization.arrayToDataTable([
                 <?php echo $graphMemoryData1 ?>
             ]);
             var memorydata2 = google.visualization.arrayToDataTable([
                 <?php echo $graphMemoryData2 ?>
             ]);
+            var memoryoptions = {
+                title: 'Memory Usage of Virtual Machine' ,
+                fontSize: 11,
+                series: {
+                    0:{color: 'purple', visibleInLegend: true, pointSize: 3, lineWidth: 1}, 
+					1:{color: 'green', visibleInLegend: true, pointSize: 5, lineWidth: 3}          
+                },
+                hAxis: {title: 'Time', titleTextStyle:{color: '#03619D'}},
+                vAxis: {title: 'Memory Usage', titleTextStyle:{color: '#03619D'}}
+            };
+			
             var memoryratedata1 = google.visualization.arrayToDataTable([
                 <?php echo $graphMemoryRateData1 ?>
             ]);
             var memoryratedata2 = google.visualization.arrayToDataTable([
                 <?php echo $graphMemoryRateData2 ?>
             ]);
-
-            var options = {
-                title: 'Usage of Virtual Machine' ,
+            var memoryrateoptions = {
+                title: 'Memory Rate of Virtual Machine' ,
                 fontSize: 11,
                 series: {
-                    0:{color: 'red', visibleInLegend: true, pointSize: 3, lineWidth: 1},
+                    0:{color: 'blue', visibleInLegend: true, pointSize: 3, lineWidth: 1}         
+                },
+                hAxis: {title: 'Time', titleTextStyle:{color: '#03619D'}},
+                vAxis: {title: 'Memory Rate', titleTextStyle:{color: '#03619D'}}
+            };
+			
+			
+            var threaddata1 = google.visualization.arrayToDataTable([
+                <?php echo $graphThreadData1 ?>
+            ]);
+            var threaddata2 = google.visualization.arrayToDataTable([
+                <?php echo $graphThreadData2 ?>
+            ]);
+            var threadoptions = {
+                title: 'Thread Usage of Virtual Machine' ,
+                fontSize: 11,
+                series: {
+                    0:{color: 'red', visibleInLegend: true, pointSize: 1, lineWidth: 1}                   
+                },
+                hAxis: {title: 'Time', titleTextStyle:{color: '#03619D'}},
+                vAxis: {title: 'Threads', titleTextStyle:{color: '#03619D'}}
+            };
+			
+            var iodata1 = google.visualization.arrayToDataTable([
+                <?php echo $graphIOData1 ?>
+            ]);
+            var iodata2 = google.visualization.arrayToDataTable([
+                <?php echo $graphIOData2 ?>
+            ]);
+            var iooptions = {
+                title: 'I/O Transfer of Virtual Machine' ,
+                fontSize: 11,
+                series: {
+                    0:{color: 'blue', visibleInLegend: true, pointSize: 3, lineWidth: 1}                   
+                },
+                hAxis: {title: 'Time', titleTextStyle:{color: '#03619D'}},
+                vAxis: {title: 'I/O Transfer', titleTextStyle:{color: '#03619D'}}
+            };
+			
+            var iorwdata1 = google.visualization.arrayToDataTable([
+                <?php echo $graphIORWData1 ?>
+            ]);
+            var iorwdata2 = google.visualization.arrayToDataTable([
+                <?php echo $graphIORWData2 ?>
+            ]);
+
+            var iorwoptions = {
+                title: 'I/O read/write of Virtual Machine' ,
+                fontSize: 11,
+				isStacked: true,
+                series: {
+                    0:{color: 'green', visibleInLegend: true, pointSize: 3, lineWidth: 1},
                     1:{color: 'blue', visibleInLegend: true, pointSize: 5, lineWidth: 3}
                 },
                 hAxis: {title: 'Time', titleTextStyle:{color: '#03619D'}},
-                vAxis: {title: 'Usage', titleTextStyle:{color: '#03619D'}}
+                vAxis: {title: 'I/O Usage', titleTextStyle:{color: '#03619D'}}
             };
 
-            var cpuchart1 = new google.visualization.LineChart(document.getElementById('CPUchart1'));
-            cpuchart1.draw(cpudata1, options);
+            var cpuchart1 = new google.visualization.ColumnChart(document.getElementById('CPUchart1'));
+            cpuchart1.draw(cpudata1, cpuoptions);
 					
-			var cpuchart2 = new google.visualization.AreaChart(document.getElementById('CPUchart2'));
-			cpuchart2.draw(cpudata2, options);
+			var cpuchart2 = new google.visualization.ColumnChart(document.getElementById('CPUchart2'));
+			cpuchart2.draw(cpudata2, cpuoptions);
 			
-            var memorychart1 = new google.visualization.LineChart(document.getElementById('Memorychart1'));
-            memorychart1.draw(memorydata1, options);
+            var memorychart1 = new google.visualization.AreaChart(document.getElementById('Memorychart1'));
+            memorychart1.draw(memorydata1, memoryoptions);
 					
 			var memorychart2 = new google.visualization.AreaChart(document.getElementById('Memorychart2'));
-			memorychart2.draw(memorydata2, options);
+			memorychart2.draw(memorydata2, memoryoptions);
 			
             var memoryratechart1 = new google.visualization.LineChart(document.getElementById('MemoryRatechart1'));
-            memoryratechart1.draw(memoryratedata1, options);
+            memoryratechart1.draw(memoryratedata1, memoryrateoptions);
 					
-			var memoryratechart2 = new google.visualization.AreaChart(document.getElementById('MemoryRatechart2'));
-			memoryratechart2.draw(memoryratedata2, options);
+			var memoryratechart2 = new google.visualization.LineChart(document.getElementById('MemoryRatechart2'));
+			memoryratechart2.draw(memoryratedata2, memoryrateoptions);
 			
+            var threadchart1 = new google.visualization.LineChart(document.getElementById('Threadchart1'));
+            threadchart1.draw(threaddata1, threadoptions);
+            var threadchart2 = new google.visualization.LineChart(document.getElementById('Threadchart2'));
+            threadchart2.draw(threaddata2, threadoptions);
+			
+            var iochart1 = new google.visualization.AreaChart(document.getElementById('IOchart1'));
+            iochart1.draw(iodata1, iooptions);
+            var iochart2 = new google.visualization.AreaChart(document.getElementById('IOchart2'));
+            iochart2.draw(iodata2, iooptions);
+            var iorwchart1 = new google.visualization.ColumnChart(document.getElementById('IORWchart1'));
+            iorwchart1.draw(iorwdata1, iorwoptions);
+            var iorwchart2 = new google.visualization.ColumnChart(document.getElementById('IORWchart2'));
+            iorwchart2.draw(iorwdata1, iorwoptions);
         }
     </script>
 	
