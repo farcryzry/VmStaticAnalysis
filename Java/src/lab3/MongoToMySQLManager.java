@@ -4,9 +4,7 @@ package lab3;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
@@ -20,7 +18,7 @@ public class MongoToMySQLManager {
 	 static final String MYSQLUSER = "group3";
 	 static final String MYSQLPASS = "sjsugroup3";
 	 static final String MONGODBPATH = "/Applications/mongodb-osx-x86_64-2.6.0/bin/mongod --dbpath /Users/lingzhang/Documents/mongoDBdata/db";	
-	 static final String VMIP1="172.16.35.135";
+	 static final String VMIP1="172.16.35.139";
 
 	
 	public static void main (String[] args) throws Exception {
@@ -35,7 +33,10 @@ public class MongoToMySQLManager {
 		System.out.println("Connecting to MySQL...");
 		Connection mysqlconn = DriverManager.getConnection(MYSQLDB_URL,MYSQLUSER,MYSQLPASS);
 		System.out.println("Getting CPU data from mongoDB to MySQL...");
-		getAndStoreCPUs(mongocoll,VMIP1,mysqlconn);
+		//getAndStoreCPUs(mongocoll,VMIP1,mysqlconn);
+		//getAndStoreMemorys(mongocoll,VMIP1,mysqlconn);
+		//getAndStoreIOs(mongocoll,VMIP1,mysqlconn);
+		getAndStoreThreads(mongocoll,VMIP1,mysqlconn);
 		
 		System.out.println("Closing connection to MySQL...");
 		mysqlconn.close();
@@ -59,56 +60,150 @@ public class MongoToMySQLManager {
 	    condList.add(cond2);  	      
 	    BasicDBObject cond= new BasicDBObject();        
 	    cond.put("$and", condList); 
-	    //DBCursor cursor= mongocoll.find(cond);
 	    //query data sort with time stamp and limit to last 60 records
 	    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(60); 
 	    
 	    //get data from query result and insert into MySQL cpu table
-	    Double us;
-	    Double sy;
+	    Double percent;
 	    String time;
 		while (cursor.hasNext()) {		
 		    BasicDBObject obj = (BasicDBObject) cursor.next();
-		    us=Double.parseDouble(obj.getString("us"));
-		    sy=Double.parseDouble(obj.getString("sy"));		    
+		    percent=Double.parseDouble(obj.getString("percent"));
+		    	    
 		    time = obj.getString("@timestamp");
-		    //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSSSSS");
-		    //Date date =sdf.parse(time);
-		    //Timestamp ts = Timestamp.valueOf("2014-04-22 07:16:41.626000");
-		    System.out.println(vmip+":" + time+ ": "+ us + ", " + sy);
-		    //System.out.println(ts);
-		    //System.out.println(date);
-		    String sql= "insert into cpu (ip, time, us, sy) values (?,?,?,?) ";
+		    System.out.println(vmip+":" + time+ ": "+ percent );
+		    String sql= "insert into cpu (ip, time, percent) values (?,?,?) ";
 		    PreparedStatement prest=mysqlconn.prepareStatement(sql);
 		    prest.setString(1, vmip);
 		    prest.setString(2, time);
-		    prest.setDouble(3, us);
-		    prest.setDouble(4, sy);
+		    prest.setDouble(3, percent);
 		    prest.executeUpdate();
 
 		}
 		cursor.close();	   
 	}
 	
-	public static void getAverageMemory(){
-		
-	}
+	public static void getAndStoreMemorys(DBCollection mongocoll, String vmip, Connection mysqlconn )
+			throws Exception{
+			    //condition list：  
+			    BasicDBList condList = new BasicDBList();     
+			    BasicDBObject cond1= new BasicDBObject();  
+			    cond1.append("ip", vmip);    	      
+			    BasicDBObject cond2= new BasicDBObject();  	      
+			    cond2.append("type","memory");  	      
+			    //combine 2 condition together 
+			    condList.add(cond1);  	      
+			    condList.add(cond2);  	      
+			    BasicDBObject cond= new BasicDBObject();        
+			    cond.put("$and", condList); 
+			    //query data sort with time stamp and limit to last 60 records
+			    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(60); 
+			    
+			    //get data from query result and insert into MySQL cpu table
+			    int free;
+			    int used;
+			    String time;
+			    double rate;
+				while (cursor.hasNext()) {		
+				    BasicDBObject obj = (BasicDBObject) cursor.next();
+				    free=Integer.parseInt(obj.getString("free"));
+				    used=Integer.parseInt(obj.getString("used"));
+				    rate=Double.parseDouble(obj.getString("rate"));
+				    time = obj.getString("@timestamp");				    
+				    System.out.println(vmip+":" + time+ ": "+ free + ", " + used);
+				    String sql= "insert into memory (ip, time, free, used, rate) values (?,?,?,?,?) ";
+				    PreparedStatement prest=mysqlconn.prepareStatement(sql);
+				    prest.setString(1, vmip);
+				    prest.setString(2, time);
+				    prest.setInt(3, free);
+				    prest.setInt(4, used);
+				    prest.setDouble(5, rate);
+				    prest.executeUpdate();
 
-	public static void getAverageNetwork(){
-		
-	} 
+				}
+				cursor.close();	   
+			}
 	
-	public static void getAverageDisk(){
-		
-	} 
+	public static void getAndStoreIOs(DBCollection mongocoll, String vmip, Connection mysqlconn )
+			throws Exception{
+			    //condition list：  
+			    BasicDBList condList = new BasicDBList();     
+			    BasicDBObject cond1= new BasicDBObject();  
+			    cond1.append("ip", vmip);    	      
+			    BasicDBObject cond2= new BasicDBObject();  	      
+			    cond2.append("type","io");  	      
+			    //combine 2 condition together 
+			    condList.add(cond1);  	      
+			    condList.add(cond2);  	      
+			    BasicDBObject cond= new BasicDBObject();        
+			    cond.put("$and", condList); 
+			    //query data sort with time stamp and limit to last 60 records
+			    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(60); 
+			    
+			    //get data from query result and insert into MySQL cpu table
+			    double tps;
+			    double read;
+			    String time;
+			    double write;
+				while (cursor.hasNext()) {		
+				    BasicDBObject obj = (BasicDBObject) cursor.next();
+				    tps=Double.parseDouble(obj.getString("tps"));
+				    read=Double.parseDouble(obj.getString("kbread-s"));
+				    write=Double.parseDouble(obj.getString("kb-wrtn-s"));
+				    time = obj.getString("@timestamp");				    
+				    System.out.println(vmip+":" + time+ ": "+ tps + ", " + read + ", " + write);
+				    String sql= "insert into io (ip, time, tps, readps, writeps) values (?,?,?,?,?) ";
+				    PreparedStatement prest=mysqlconn.prepareStatement(sql);
+				    prest.setString(1, vmip);
+				    prest.setString(2, time);
+				    prest.setDouble(3, tps);
+				    prest.setDouble(4, read);
+				    prest.setDouble(5, write);
+				    prest.executeUpdate();
+
+				}
+				cursor.close();	   
+			}
 	
-	public static void getAverageUptime(){
-		
-	} 
-	
-	public void insertToMySQL(){
-		
-	}
+	public static void getAndStoreThreads(DBCollection mongocoll, String vmip, Connection mysqlconn )
+			throws Exception{
+			    //condition list：  
+			    BasicDBList condList = new BasicDBList();     
+			    BasicDBObject cond1= new BasicDBObject();  
+			    cond1.append("ip", vmip);    	      
+			    BasicDBObject cond2= new BasicDBObject();  	      
+			    cond2.append("type","thread");  	      
+			    //combine 2 condition together 
+			    condList.add(cond1);  	      
+			    condList.add(cond2);  	      
+			    BasicDBObject cond= new BasicDBObject();        
+			    cond.put("$and", condList); 
+			    //query data sort with time stamp and limit to last 60 records
+			    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(60); 
+			    
+			    //get data from query result and insert into MySQL cpu table
+			    int thread;
+			    String time;
+
+				while (cursor.hasNext()) {		
+				    BasicDBObject obj = (BasicDBObject) cursor.next();
+				    thread=Integer.parseInt(obj.getString("total"));
+
+				    time = obj.getString("@timestamp");				    
+				    System.out.println(vmip+":" + time+ ": "+ thread);
+				    String sql= "insert into thread (ip, time, total) values (?,?,?) ";
+				    PreparedStatement prest=mysqlconn.prepareStatement(sql);
+				    prest.setString(1, vmip);
+				    prest.setString(2, time);
+				    prest.setInt(3, thread);
+				    prest.executeUpdate();
+
+				}
+				cursor.close();	   
+			}
+
+
+
 	
 	
 }

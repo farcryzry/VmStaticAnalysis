@@ -123,12 +123,56 @@ insert into avg_stats (vm_name, time, avg_cpu, avg_memory) values
 	('T03-VM02-Lin-Ling', '2014-04-19 00:07:01', 21.15, 26),
 	('T03-VM02-Lin-Ling', '2014-04-19 00:08:01', 22.15, 27);
 
+-- DROP TABLE IF EXISTS cpu;
+-- CREATE TABLE cpu (
+--   id int NOT NULL AUTO_INCREMENT,
+--   ip varchar(20) NOT NULL,
+--   time varchar(50) NOT NULL,
+--   us decimal(5,2) NOT NULL, -- % of user CPU 
+--   sy decimal(5,2) NOT NULL, -- % of system CPU 
+--   PRIMARY KEY (id)
+-- );
+
 DROP TABLE IF EXISTS cpu;
 CREATE TABLE cpu (
   id int NOT NULL AUTO_INCREMENT,
   ip varchar(20) NOT NULL,
   time varchar(50) NOT NULL,
-  us decimal(5,2) NOT NULL, -- % of user CPU 
-  sy decimal(5,2) NOT NULL, -- % of system CPU 
+  percent decimal(5,2) NOT NULL, -- % of all CPU 
   PRIMARY KEY (id)
 );
+
+DROP TABLE IF EXISTS memory;
+CREATE TABLE memory (
+  id int NOT NULL AUTO_INCREMENT,
+  ip varchar(20) NOT NULL,
+  time varchar(50) NOT NULL,
+  free int, -- kb free memory
+  used int, -- kb used memory  
+  rate decimal(5,2), -- % of Memory
+  PRIMARY KEY (id)
+);
+
+DROP TABLE IF EXISTS io;
+CREATE TABLE io (
+  id int NOT NULL AUTO_INCREMENT,
+  ip varchar(20) NOT NULL,
+  time varchar(50) NOT NULL,
+  tps decimal(5,2), -- number of transfer per second
+  readps int, -- kb read
+  writeps int, -- kb write
+  PRIMARY KEY (id)
+);
+
+DROP TABLE IF EXISTS thread;
+CREATE TABLE thread (
+  id int NOT NULL AUTO_INCREMENT,
+  ip varchar(20) NOT NULL,
+  time varchar(50) NOT NULL,
+  total int, -- number of threads
+  PRIMARY KEY (id)
+);
+
+
+
+
