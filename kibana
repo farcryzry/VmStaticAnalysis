@@ -1,0 +1,4 @@
+http://130.65.133.201:8080/kibana/index.html#/dashboard/file/logstash.json
+
+
+curl -XDELETE 'http://130.65.133.201:9200/_all'

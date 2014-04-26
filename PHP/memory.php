@@ -1,25 +1,16 @@
-<?php require_once('db_connection.php');
-// Collect average CPU and Memory
-$vmip1='172.16.35.139';
-$vmip2='172.16.35.139';
-$data_array1 = getMemorysForOneVm($connection,$vmip1);
-$data_array2 = getMemorysForOneVm($connection,$vmip2);
+<?php 
+require_once('db_connection.php');
+require_once('config.php');
 
-
-// Store graph data
-$graphMemoryData1 =buildMemorysArray($data_array1);
-$graphMemoryData2 =buildMemorysArray($data_array2);
-$graphMemoryRateData1 =buildMemoryRatesArray($data_array1);
-$graphMemoryRateData2 =buildMemoryRatesArray($data_array2);
 
 
 /**
  * [getAveragePrices : Grabs data from db]
  */
 
-function getMemorysForOneVm ($connection, $vmip)
+function getMemorysForOneVm ($connection, $vmip,$QueryNumber)
 {
-    $sqlAverageQuery = "SELECT  time, rate,free,used FROM memory WHERE ip = '$vmip' Order By time limit 60 ";
+    $sqlAverageQuery = "SELECT  time, rate,free,used FROM memory WHERE ip = '$vmip' Order By time DESC limit {$QueryNumber} ";
     $sqlAverageResult = mysqli_query($connection,$sqlAverageQuery);
 	if (!$sqlAverageResult) {
 		die("Database query failed.....");

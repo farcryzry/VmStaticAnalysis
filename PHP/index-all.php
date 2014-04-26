@@ -1,3 +1,5 @@
+<?php require_once('db_connection.php');?>
+<?php require_once('config.php');?>
 <?php include ("cpu.php");?>
 <?php include ("memory.php");?>
 <?php include ("thread.php");?>
@@ -6,7 +8,8 @@
 <head>
 
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
+	<meta http-equiv="refresh" content="<?php echo $RefreshPageInterval; ?>" >
 
     <title>CMPE283Lab3</title>
 
@@ -99,11 +102,28 @@
         </div>
 
     </div>
+	
+	
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
         google.load("visualization", "1", {packages:["corechart"]});
-        google.setOnLoadCallback(drawChart);
-        function drawChart() {
+        google.setOnLoadCallback(drawAllChart);
+		function drawAllChart(){
+			drawCPUChart();
+			drawMemoryChart();
+			drawThreadChart();
+			drawIOChart();
+			//setTimeout("drawAllChart()", 6000);
+		}
+		
+        function drawCPUChart() {            	
+			<?php
+			$data_array1 = getCPUsForOneVm($connection,$vmip1,$QueryNumber);
+			$data_array2 = getCPUsForOneVm($connection,$vmip2,$QueryNumber);
+			// Store graph data
+			$graphCPUData1 =buildCPUsArray($data_array1);
+			$graphCPUData2 =buildCPUsArray($data_array2);
+			?>
             var cpudata1 = google.visualization.arrayToDataTable([
                 <?php echo $graphCPUData1 ?>
             ]);
@@ -112,7 +132,7 @@
             ]);
 			
             var cpuoptions = {
-                title: 'CPU Usage of Virtual Machine' ,
+                title: 'CPU Usage of Virtual Machine <?php echo $j?> ' ,
                 fontSize: 11,
 				curveType:'function',
                 series: {
@@ -121,7 +141,23 @@
                 hAxis: {title: 'Time', titleTextStyle:{color: '#03619D'}},
                 vAxis: {title: 'CPU Usage', titleTextStyle:{color: '#03619D'}}
             };
-			
+            var cpuchart1 = new google.visualization.ColumnChart(document.getElementById('CPUchart1'));
+            cpuchart1.draw(cpudata1, cpuoptions);					
+			var cpuchart2 = new google.visualization.ColumnChart(document.getElementById('CPUchart2'));
+			cpuchart2.draw(cpudata2, cpuoptions);
+
+			//setInterval("drawCPUChart()", 6000);
+		}
+		
+		function drawMemoryChart() { 	
+			<?php
+			$data_array1 = getMemorysForOneVm($connection,$vmip1,$QueryNumber);
+			$data_array2 = getMemorysForOneVm($connection,$vmip2,$QueryNumber);
+			$graphMemoryData1 =buildMemorysArray($data_array1);
+			$graphMemoryData2 =buildMemorysArray($data_array2);
+			$graphMemoryRateData1 =buildMemoryRatesArray($data_array1);
+			$graphMemoryRateData2 =buildMemoryRatesArray($data_array2);
+			?>
             var memorydata1 = google.visualization.arrayToDataTable([
                 <?php echo $graphMemoryData1 ?>
             ]);
@@ -155,7 +191,24 @@
                 vAxis: {title: 'Memory Rate', titleTextStyle:{color: '#03619D'}}
             };
 			
-			
+            var memorychart1 = new google.visualization.AreaChart(document.getElementById('Memorychart1'));
+            memorychart1.draw(memorydata1, memoryoptions);					
+			var memorychart2 = new google.visualization.AreaChart(document.getElementById('Memorychart2'));
+			memorychart2.draw(memorydata2, memoryoptions);			
+            var memoryratechart1 = new google.visualization.LineChart(document.getElementById('MemoryRatechart1'));
+            memoryratechart1.draw(memoryratedata1, memoryrateoptions);					
+			var memoryratechart2 = new google.visualization.LineChart(document.getElementById('MemoryRatechart2'));
+			memoryratechart2.draw(memoryratedata2, memoryrateoptions);
+		}
+		
+		
+		function drawThreadChart() { 	
+			<?php
+			$data_array1 = getThreadsForOneVm($connection,$vmip1,$QueryNumber);
+			$data_array2 = getThreadsForOneVm($connection,$vmip2,$QueryNumber);
+			$graphThreadData1 =buildThreadsArray($data_array1);
+			$graphThreadData2 =buildThreadsArray($data_array2);
+			?>
             var threaddata1 = google.visualization.arrayToDataTable([
                 <?php echo $graphThreadData1 ?>
             ]);
@@ -170,8 +223,22 @@
                 },
                 hAxis: {title: 'Time', titleTextStyle:{color: '#03619D'}},
                 vAxis: {title: 'Threads', titleTextStyle:{color: '#03619D'}}
-            };
-			
+            };			
+            var threadchart1 = new google.visualization.LineChart(document.getElementById('Threadchart1'));
+            threadchart1.draw(threaddata1, threadoptions);
+            var threadchart2 = new google.visualization.LineChart(document.getElementById('Threadchart2'));
+            threadchart2.draw(threaddata2, threadoptions);
+		}
+		
+		function drawIOChart() { 
+			<?php
+			$data_array1 = getIOsForOneVm($connection,$vmip1,$QueryNumber);
+			$data_array2 = getIOsForOneVm($connection,$vmip2,$QueryNumber);
+			$graphIOData1 =buildIOsArray($data_array1);
+			$graphIOData2 =buildIOsArray($data_array2);
+			$graphIORWData1 =buildIORWsArray($data_array1);
+			$graphIORWData2 =buildIORWsArray($data_array2);
+			?>
             var iodata1 = google.visualization.arrayToDataTable([
                 <?php echo $graphIOData1 ?>
             ]);
@@ -206,29 +273,6 @@
                 hAxis: {title: 'Time', titleTextStyle:{color: '#03619D'}},
                 vAxis: {title: 'I/O Usage', titleTextStyle:{color: '#03619D'}}
             };
-
-            var cpuchart1 = new google.visualization.ColumnChart(document.getElementById('CPUchart1'));
-            cpuchart1.draw(cpudata1, cpuoptions);
-					
-			var cpuchart2 = new google.visualization.ColumnChart(document.getElementById('CPUchart2'));
-			cpuchart2.draw(cpudata2, cpuoptions);
-			
-            var memorychart1 = new google.visualization.AreaChart(document.getElementById('Memorychart1'));
-            memorychart1.draw(memorydata1, memoryoptions);
-					
-			var memorychart2 = new google.visualization.AreaChart(document.getElementById('Memorychart2'));
-			memorychart2.draw(memorydata2, memoryoptions);
-			
-            var memoryratechart1 = new google.visualization.LineChart(document.getElementById('MemoryRatechart1'));
-            memoryratechart1.draw(memoryratedata1, memoryrateoptions);
-					
-			var memoryratechart2 = new google.visualization.LineChart(document.getElementById('MemoryRatechart2'));
-			memoryratechart2.draw(memoryratedata2, memoryrateoptions);
-			
-            var threadchart1 = new google.visualization.LineChart(document.getElementById('Threadchart1'));
-            threadchart1.draw(threaddata1, threadoptions);
-            var threadchart2 = new google.visualization.LineChart(document.getElementById('Threadchart2'));
-            threadchart2.draw(threaddata2, threadoptions);
 			
             var iochart1 = new google.visualization.AreaChart(document.getElementById('IOchart1'));
             iochart1.draw(iodata1, iooptions);
@@ -238,7 +282,9 @@
             iorwchart1.draw(iorwdata1, iorwoptions);
             var iorwchart2 = new google.visualization.ColumnChart(document.getElementById('IORWchart2'));
             iorwchart2.draw(iorwdata1, iorwoptions);
-        }
+		}
+			
+        
     </script>
 	
 	
