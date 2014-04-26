@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 
-
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -14,34 +13,50 @@ import com.mongodb.DBCursor;
 import com.mongodb.MongoClient;
 
 public class MongoToMySQLManager {
+	 static final String VMIP1="172.16.35.143"; // need to reset!!!! and make php config ip same as here
 	 static final String MYSQLDB_URL = "jdbc:mysql://localhost/cmpe283";
 	 static final String MYSQLUSER = "group3";
 	 static final String MYSQLPASS = "sjsugroup3";
 	 static final String MONGODBPATH = "/Applications/mongodb-osx-x86_64-2.6.0/bin/mongod --dbpath /Users/lingzhang/Documents/mongoDBdata/db";	
-	 static final String VMIP1="172.16.35.139";
+	 static final boolean LocalMongo=true;
+	 static final String MongoURL="localhost";
+	 static final String MongoDBName="lingdb";
+	 static final String MongoDBCollection="vmstatics";
+	 static final int SleepInterval=10000;   //need to reset!!!
+	 static final int RetrieveNubmerLimit=2; //should be SleepInterval/5000
 
 	
 	public static void main (String[] args) throws Exception {
-		//open mongodb
+		//if use local monog, open mongodb
+		Process process;
+		if (LocalMongo) {
 		String cmd = MONGODBPATH;
 		System.out.println("Opening mongoDB...");
-		Process process = Runtime.getRuntime().exec(cmd);
+		process = Runtime.getRuntime().exec(cmd);
+		}
+		while(true){
 		System.out.println("Connecting to mongoDB...");
-		MongoClient mongoClient = new MongoClient( "localhost" , 27017 );		
-		DB mongodb = mongoClient.getDB( "lingdb" );	
-		DBCollection mongocoll = mongodb.getCollection("vmstatics");
+		MongoClient mongoClient = new MongoClient( MongoURL , 27017 );		
+		DB mongodb = mongoClient.getDB( MongoDBName );	
+		DBCollection mongocoll = mongodb.getCollection(MongoDBCollection);
 		System.out.println("Connecting to MySQL...");
 		Connection mysqlconn = DriverManager.getConnection(MYSQLDB_URL,MYSQLUSER,MYSQLPASS);
 		System.out.println("Getting CPU data from mongoDB to MySQL...");
-		//getAndStoreCPUs(mongocoll,VMIP1,mysqlconn);
-		//getAndStoreMemorys(mongocoll,VMIP1,mysqlconn);
-		//getAndStoreIOs(mongocoll,VMIP1,mysqlconn);
+		getAndStoreCPUs(mongocoll,VMIP1,mysqlconn);
+		getAndStoreMemorys(mongocoll,VMIP1,mysqlconn);
+		getAndStoreIOs(mongocoll,VMIP1,mysqlconn);
 		getAndStoreThreads(mongocoll,VMIP1,mysqlconn);
 		
 		System.out.println("Closing connection to MySQL...");
 		mysqlconn.close();
 		System.out.println("Closing MongoDB...");
+		if (LocalMongo){
 		process.destroy();
+		}
+		
+		System.out.println("Wait for " + SleepInterval/1000 +" second to retrieve data again...");
+		Thread.sleep(SleepInterval);
+		}
 	}
 	
 	
@@ -60,8 +75,8 @@ public class MongoToMySQLManager {
 	    condList.add(cond2);  	      
 	    BasicDBObject cond= new BasicDBObject();        
 	    cond.put("$and", condList); 
-	    //query data sort with time stamp and limit to last 60 records
-	    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(60); 
+	    //query data sort with time stamp and limit to last RetrieveNubmerLimit records
+	    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(RetrieveNubmerLimit); 
 	    
 	    //get data from query result and insert into MySQL cpu table
 	    Double percent;
@@ -96,8 +111,8 @@ public class MongoToMySQLManager {
 			    condList.add(cond2);  	      
 			    BasicDBObject cond= new BasicDBObject();        
 			    cond.put("$and", condList); 
-			    //query data sort with time stamp and limit to last 60 records
-			    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(60); 
+			    //query data sort with time stamp and limit to last RetrieveNubmerLimit records
+			    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(RetrieveNubmerLimit); 
 			    
 			    //get data from query result and insert into MySQL cpu table
 			    int free;
@@ -137,8 +152,8 @@ public class MongoToMySQLManager {
 			    condList.add(cond2);  	      
 			    BasicDBObject cond= new BasicDBObject();        
 			    cond.put("$and", condList); 
-			    //query data sort with time stamp and limit to last 60 records
-			    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(60); 
+			    //query data sort with time stamp and limit to last RetrieveNubmerLimit records
+			    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(RetrieveNubmerLimit); 
 			    
 			    //get data from query result and insert into MySQL cpu table
 			    double tps;
@@ -178,8 +193,8 @@ public class MongoToMySQLManager {
 			    condList.add(cond2);  	      
 			    BasicDBObject cond= new BasicDBObject();        
 			    cond.put("$and", condList); 
-			    //query data sort with time stamp and limit to last 60 records
-			    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(60); 
+			    //query data sort with time stamp and limit to last RetrieveNubmerLimit records
+			    DBCursor cursor= mongocoll.find(cond).sort(new BasicDBObject("@timestamp",-1)).limit(RetrieveNubmerLimit); 
 			    
 			    //get data from query result and insert into MySQL cpu table
 			    int thread;
