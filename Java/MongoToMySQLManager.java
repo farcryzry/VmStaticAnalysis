@@ -4,6 +4,8 @@ package lab3;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
@@ -13,7 +15,10 @@ import com.mongodb.DBCursor;
 import com.mongodb.MongoClient;
 
 public class MongoToMySQLManager {
-	 static final String VMIP1="172.16.35.143"; // need to reset!!!! and make php config ip same as here
+	 
+	 static final String VMIP1="130.65.133.148"; // need to reset!!!! and make php config ip same as here
+	 static final String VMIP2="130.65.133.194"; // need to reset!!!! and make php config ip same as here
+	 static final ArrayList<String> VMIPS= new ArrayList<String>(Arrays.asList(VMIP1,VMIP2));
 	 static final String MYSQLDB_URL = "jdbc:mysql://localhost/cmpe283";
 	 static final String MYSQLUSER = "group3";
 	 static final String MYSQLPASS = "sjsugroup3";
@@ -42,10 +47,13 @@ public class MongoToMySQLManager {
 		System.out.println("Connecting to MySQL...");
 		Connection mysqlconn = DriverManager.getConnection(MYSQLDB_URL,MYSQLUSER,MYSQLPASS);
 		System.out.println("Getting CPU data from mongoDB to MySQL...");
-		getAndStoreCPUs(mongocoll,VMIP1,mysqlconn);
-		getAndStoreMemorys(mongocoll,VMIP1,mysqlconn);
-		getAndStoreIOs(mongocoll,VMIP1,mysqlconn);
-		getAndStoreThreads(mongocoll,VMIP1,mysqlconn);
+		
+		for(String vmip : VMIPS){
+		getAndStoreCPUs(mongocoll,vmip,mysqlconn);
+		getAndStoreMemorys(mongocoll,vmip,mysqlconn);
+		getAndStoreIOs(mongocoll,vmip,mysqlconn);
+		getAndStoreThreads(mongocoll,vmip,mysqlconn);
+		}
 		
 		System.out.println("Closing connection to MySQL...");
 		mysqlconn.close();
